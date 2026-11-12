@@ -1,0 +1,16 @@
+# dsh-comfyui-gallery — bundle patch
+#
+# Mounts the plugin into the DSH profile's config tree. Everything configurable
+# (which directories to scan, whether a ComfyUI server is asked as a fallback)
+# lives in ~/.dsh-comfyui-gallery/config.json, so this file normally needs no edit.
+#
+# To override here instead:
+#   - id: dsh-comfyui-gallery
+#     name: dsh-comfyui-gallery
+#     config:
+#       roots:
+#         - 'D:/Program Files/Comfy UI/ComfyUI/output'
+#       comfyuiBaseUrl: 'http://127.0.0.1:8188'
+- insert:
+    - id: dsh-comfyui-gallery
+      name: dsh-comfyui-gallery

@@ -1,0 +1,60 @@
+# dependencies
+node_modules/
+packages/*/node_modules/
+
+# caches / build artifacts
+__pycache__/
+*.py[cod]
+*.log
+.cache/
+dist/
+build/
+*.tsbuildinfo
+
+# local config, secrets, credentials
+.env
+.env.*
+*.local.json
+config.json
+.dsh-comfyui-gallery/
+*.pem
+*.key
+*.pfx
+*.p12
+
+# user images, LoRA files, generated media, databases
+output/
+inputs/
+uploads/
+retained/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.mp4
+*.webm
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.bin
+*.onnx
+*.db
+*.sqlite
+index.json
+similarity.json
+interrogate-history.json
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# share packages (not published from this repo)
+*.zip
+
+# exceptions: keep the plugin icon
+!icon.svg

@@ -1,0 +1,59 @@
+{
+  "name": "dsh-comfyui-gallery",
+  "version": "0.8.0",
+  "description": "ComfyUI gallery for DeepSeek Harness: browse every generated image, read its prompt, negative prompt, sampler parameters, models and LoRAs, and copy any of it back for reuse.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "scripts",
+    "cordis.patch.yml",
+    "README.md",
+    "icon.svg"
+  ],
+  "scripts": {
+    "test": "node scripts/self-test.mjs && node scripts/interrogate-test.mjs && node scripts/features-test.mjs && node scripts/analyze-test.mjs && node scripts/uploads-test.mjs && node scripts/imports-test.mjs && node scripts/history-test.mjs && node scripts/loras-test.mjs && node scripts/lora-batch-test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis",
+    "comfyui",
+    "gallery",
+    "prompt",
+    "metadata"
+  ],
+  "meta": {
+    "title": "ComfyUI Gallery",
+    "description": "A gallery page opened from the left sidebar: every image ComfyUI produced, with its prompt, negative prompt and full sampler parameters."
+  },
+  "icon": "./icon.svg",
+  "license": "MIT",
+  "dsh": {
+    "engines": {
+      "dsh": ">=0.2.0-rc.1"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  }
+}
