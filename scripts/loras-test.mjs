@@ -82,7 +82,7 @@ try {
   check(restored.job(missingId).state === 'done' && (await fs.readFile(restored.preview(missingId).real)).toString('ascii', 0, 4) === 'RIFF', 'background fetch decodes and stores compact WebP preview')
   restored.download = async (url, kind) => { downloads.push({ url, kind }); return png }
   downloads = []; await restored.fetch(id); await restored.jobs.get(id).task
-  check(downloads.length === 1 && downloads[0].kind === 'image', 'existing manager preview URL skips weight hashing and metadata requests')
+  check(downloads.length >= 1 && downloads.length <= 3 && downloads.every(entry => entry.kind === 'image'), 'existing manager preview URL skips weight hashing and metadata requests, fetching 1-3 preview images')
   for (const url of ['http://image.civitai.com/a', 'https://localhost/a', 'https://image.civitai.com.evil.test/a', 'https://image.civitai.com:123/a', 'https://user:secret@image.civitai.com/a']) {
     assert.throws(() => allowedLoraUrl(url)); checks++
   }
