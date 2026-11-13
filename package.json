@@ -4,6 +4,14 @@
   "description": "ComfyUI gallery for DeepSeek Harness: browse every generated image, read its prompt, negative prompt, sampler parameters, models and LoRAs, and copy any of it back for reuse.",
   "type": "module",
   "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SunSets44Times/dsh-comfyui-gallery.git"
+  },
+  "homepage": "https://github.com/SunSets44Times/dsh-comfyui-gallery#readme",
+  "bugs": {
+    "url": "https://github.com/SunSets44Times/dsh-comfyui-gallery/issues"
+  },
   "exports": {
     ".": "./lib/index.js",
     "./client": {
