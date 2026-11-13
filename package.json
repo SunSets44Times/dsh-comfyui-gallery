@@ -1,6 +1,6 @@
 {
   "name": "dsh-comfyui-gallery",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "ComfyUI gallery for DeepSeek Harness: browse every generated image, read its prompt, negative prompt, sampler parameters, models and LoRAs, and copy any of it back for reuse.",
   "type": "module",
   "main": "lib/index.js",
@@ -19,7 +19,7 @@
     "icon.svg"
   ],
   "scripts": {
-    "test": "node scripts/self-test.mjs && node scripts/interrogate-test.mjs && node scripts/features-test.mjs && node scripts/analyze-test.mjs && node scripts/uploads-test.mjs && node scripts/imports-test.mjs && node scripts/history-test.mjs && node scripts/loras-test.mjs && node scripts/lora-batch-test.mjs && node scripts/delete-test.mjs && node scripts/delete-api-test.mjs"
+    "test": "node scripts/self-test.mjs && node scripts/interrogate-test.mjs && node scripts/features-test.mjs && node scripts/analyze-test.mjs && node scripts/uploads-test.mjs && node scripts/imports-test.mjs && node scripts/history-test.mjs && node scripts/loras-test.mjs && node scripts/lora-batch-test.mjs && node scripts/delete-test.mjs && node scripts/delete-api-test.mjs && node scripts/tree-test.mjs"
   },
   "engines": {
     "node": ">=20"

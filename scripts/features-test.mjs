@@ -83,7 +83,7 @@ try {
   // Exercise the shipped client without screenshots or a browser build.
   let client, internal
   let source = await fs.readFile('lib/client.js', 'utf8')
-  source = source.replace('exports.apply = apply', 'exports.__test = { captionZip, Compare, ReusePanel, BatchPanel, SimilarPanel, MarkEditor, Card, GalleryBody, Detail, Prompt, CopyButton, allPromptParameters }; exports.apply = apply')
+  source = source.replace('exports.apply = apply', 'exports.__test = { captionZip, Compare, ReusePanel, BatchPanel, SimilarPanel, MarkEditor, Card, GalleryBody, Detail, Prompt, CopyButton, allPromptParameters, groupItems, DirFilter }; exports.apply = apply')
   let clipboardText = ''
   let slots = [], cursor = 0, requests = []
   const react = { createElement: (type, props, ...children) => ({ type, props: props || {}, children: children.flat(Infinity) }), useState: initial => { const i = cursor++; if (!(i in slots)) slots[i] = typeof initial === 'function' ? initial() : initial; return [slots[i], v => { slots[i] = typeof v === 'function' ? v(slots[i]) : v }] }, useEffect: () => {}, useRef: v => ({ current: v }) }
@@ -94,7 +94,13 @@ try {
   const zipCheck = spawnSync(python, ['-c', "import zipfile,sys; z=zipfile.ZipFile(sys.argv[1]); assert z.testzip() is None; assert z.read('image-1/测试.txt').decode() == 'caption 内容'", path.join(fixture, 'captions.zip')], { encoding: 'utf8', windowsHide: true }); check(zipCheck.status === 0, 'client ZIP readable with UTF8 names and CRC')
   function render(name, props, initial) { if (initial) slots = initial; cursor = 0; return internal[name](props) }
   function nodes(tree) { return typeof tree === 'object' && tree ? [tree, ...(tree.children || []).flatMap(nodes)] : [] }
-  for (const [component, props] of [['Compare', { ids: [id, copy] }], ['ReusePanel', { id, token: 'x' }], ['BatchPanel', { ids: [id], token: 'x' }], ['SimilarPanel', { ids: [id], features: { semantic: { ready: true } } }], ['MarkEditor', { id }], ['GalleryBody', {}], ['Card', { item: { id, name: 'fixture', mtime: Date.now() }, checked: true }]]) { check(render(component, props, []).type, 'client initial render ' + component) }
+  for (const [component, props] of [['Compare', { ids: [id, copy] }], ['ReusePanel', { id, token: 'x' }], ['BatchPanel', { ids: [id], token: 'x' }], ['SimilarPanel', { ids: [id], features: { semantic: { ready: true } } }], ['MarkEditor', { id }], ['GalleryBody', {}], ['Card', { item: { id, name: 'fixture', mtime: Date.now() }, checked: true }]]) { check(render(component, props, []).type, 'client initial render ' + component)
+  const dateGroups = internal.groupItems([{ id: 'a', mtime: Date.now(), sub: '' }, { id: 'b', mtime: Date.now() - 3 * 86400000, sub: 'scratch\\2026-11' }], 'date')
+  check(dateGroups.length === 2 && dateGroups[0].label === '今天' && dateGroups[1].label === '最近 7 天', 'date grouping buckets today and the past week')
+  const dirGroups = internal.groupItems([{ id: 'a', mtime: Date.now(), sub: 'projects\\planrender' }, { id: 'b', mtime: Date.now(), sub: 'projects\\pfinal' }, { id: 'c', mtime: Date.now(), sub: 'scratch\\2026-11' }], 'dir')
+  check(dirGroups.length === 3 && dirGroups[0].label === 'projects / planrender', 'dir grouping buckets by the first two path segments')
+  const treeNode = render('DirFilter', { tree: [{ name: 'projects', path: 'projects', count: 3, children: [{ name: 'planrender', path: 'projects\\planrender', count: 2, children: [] }] }], value: '', onSelect: function () {} }, [])
+  check(nodes(treeNode).filter(n => typeof n.props?.className === 'string' && n.props.className.indexOf('cg-tree-row') === 0).length === 3, 'dir filter renders every row including all-directories') }
   const firstDetail = await store.detail(other), secondDetail = { ...firstDetail, id, sampling: { ...firstDetail.sampling, seed: 999 }, positive: 'different prompt' }
   const copyDetail = { ...secondDetail, positive: '风景\nmasterpiece', negative: '', sampling: { seed: '18446744073709551615', cfg: 0, denoise: 0, steps: 20 }, loras: [{ name: 'detail.safetensors', strength: 0, strengthClip: 0.7 }] }
   const detailTree = render('Detail', { item: copyDetail }, [])
