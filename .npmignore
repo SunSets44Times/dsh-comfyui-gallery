@@ -1,0 +1,38 @@
+# caches (npm packs by `files`, not .gitignore)
+__pycache__/
+*.py[cod]
+*.log
+.cache/
+
+# local config, secrets
+.env
+.env.*
+*.local.json
+config.json
+
+# user media / models / generated data
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.mp4
+*.webm
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.bin
+*.onnx
+*.db
+*.sqlite
+index.json
+similarity.json
+interrogate-history.json
+
+# os noise
+.DS_Store
+Thumbs.db
+
+# exceptions: keep the plugin icon
+!icon.svg

@@ -83,11 +83,12 @@ try {
   // Exercise the shipped client without screenshots or a browser build.
   let client, internal
   let source = await fs.readFile('lib/client.js', 'utf8')
-  source = source.replace('exports.apply = apply', 'exports.__test = { captionZip, Compare, ReusePanel, BatchPanel, SimilarPanel, MarkEditor, Card, GalleryBody }; exports.apply = apply')
+  source = source.replace('exports.apply = apply', 'exports.__test = { captionZip, Compare, ReusePanel, BatchPanel, SimilarPanel, MarkEditor, Card, GalleryBody, Detail, Prompt, CopyButton, allPromptParameters }; exports.apply = apply')
+  let clipboardText = ''
   let slots = [], cursor = 0, requests = []
   const react = { createElement: (type, props, ...children) => ({ type, props: props || {}, children: children.flat(Infinity) }), useState: initial => { const i = cursor++; if (!(i in slots)) slots[i] = typeof initial === 'function' ? initial() : initial; return [slots[i], v => { slots[i] = typeof v === 'function' ? v(slots[i]) : v }] }, useEffect: () => {}, useRef: v => ({ current: v }) }
   const mockFetch = async (url, options) => { requests.push({ url, body: options?.body && JSON.parse(options.body) }); return { ok: true, json: async () => ({ promptId: 'ui-mock', status: 'queued' }) } }
-  vm.runInNewContext(source, { window: { __ModuleLoader__: { load: m => { client = m.factory(() => react) } } }, fetch: mockFetch, URLSearchParams, Blob, TextEncoder, setTimeout, clearTimeout, console })
+  vm.runInNewContext(source, { window: { isSecureContext: true, __ModuleLoader__: { load: m => { client = m.factory(() => react) } } }, navigator: { clipboard: { writeText: async value => { clipboardText = value } } }, fetch: mockFetch, URLSearchParams, Blob, TextEncoder, setTimeout, clearTimeout, console })
   internal = client.__test
   const zip = internal.captionZip([{ folder: 'image-1', name: '测试.txt', text: 'caption 内容' }]); await fs.writeFile(path.join(fixture, 'captions.zip'), Buffer.from(await zip.arrayBuffer()))
   const zipCheck = spawnSync(python, ['-c', "import zipfile,sys; z=zipfile.ZipFile(sys.argv[1]); assert z.testzip() is None; assert z.read('image-1/测试.txt').decode() == 'caption 内容'", path.join(fixture, 'captions.zip')], { encoding: 'utf8', windowsHide: true }); check(zipCheck.status === 0, 'client ZIP readable with UTF8 names and CRC')
@@ -95,6 +96,20 @@ try {
   function nodes(tree) { return typeof tree === 'object' && tree ? [tree, ...(tree.children || []).flatMap(nodes)] : [] }
   for (const [component, props] of [['Compare', { ids: [id, copy] }], ['ReusePanel', { id, token: 'x' }], ['BatchPanel', { ids: [id], token: 'x' }], ['SimilarPanel', { ids: [id], features: { semantic: { ready: true } } }], ['MarkEditor', { id }], ['GalleryBody', {}], ['Card', { item: { id, name: 'fixture', mtime: Date.now() }, checked: true }]]) { check(render(component, props, []).type, 'client initial render ' + component) }
   const firstDetail = await store.detail(other), secondDetail = { ...firstDetail, id, sampling: { ...firstDetail.sampling, seed: 999 }, positive: 'different prompt' }
+  const copyDetail = { ...secondDetail, positive: '风景\nmasterpiece', negative: '', sampling: { seed: '18446744073709551615', cfg: 0, denoise: 0, steps: 20 }, loras: [{ name: 'detail.safetensors', strength: 0, strengthClip: 0.7 }] }
+  const detailTree = render('Detail', { item: copyDetail }, [])
+  const positivePrompt = nodes(detailTree).find(node => node.type === internal.Prompt && node.props.label === '正向提示词')
+  const promptTree = render('Prompt', positivePrompt.props, [])
+  const copyActions = nodes(promptTree).find(node => node.props.className === 'cg-actions').children.filter(node => node && node.type === internal.CopyButton)
+  check(copyActions.length === 2 && copyActions[0].props.value === copyDetail.positive, 'copy all sits beside the unchanged positive copy button')
+  const allButton = render('CopyButton', copyActions[1].props, [])
+  check(allButton.props['aria-label'] === '复制全部提示词和参数' && allButton.children[0].children[0] === '复制全部提示词和参数', 'copy all has a visible and accessible label')
+  await allButton.props.onClick({ preventDefault() {}, stopPropagation() {} })
+  check(clipboardText.startsWith('正向提示词：\n风景\nmasterpiece\n\n负向提示词：\n\n\n'), 'clipboard preserves multiline positive and intentional empty negative')
+  const copiedParameters = JSON.parse(clipboardText.slice(clipboardText.indexOf('{')))
+  check(copiedParameters['采样参数'].seed === copyDetail.sampling.seed && copiedParameters['采样参数'].cfg === 0 && copiedParameters['LoRA 与权重'][0].strength === 0 && copiedParameters['LoRA 与权重'][0].strengthClip === 0.7, 'copy preserves long seed and zero-valued parameters and LoRA weights')
+  check(copiedParameters['图片尺寸'].width === copyDetail.width && JSON.stringify(copiedParameters['模型']) === JSON.stringify(copyDetail.models) && Array.isArray(copiedParameters['全部采样节点']), 'copy includes image dimensions models and all sampler branches')
+  check(internal.allPromptParameters({}).includes('"采样参数": {}'), 'missing metadata copies without fabricated generation values')
   const comparison = render('Compare', { ids: [other, id] }, [[firstDetail, secondDetail], '', 2])
   check(nodes(comparison).filter(n => n.props.className === 'cg-difference').length >= 2, 'comparison highlights prompt and seed differences')
   const panes = nodes(comparison).filter(n => n.props.className === 'cg-zoom-pane'), paneA = { scrollLeft: 80, scrollTop: 60, scrollWidth: 500, clientWidth: 100, scrollHeight: 500, clientHeight: 200 }, paneB = { scrollLeft: 0, scrollTop: 0, scrollWidth: 900, clientWidth: 100, scrollHeight: 600, clientHeight: 300 }
