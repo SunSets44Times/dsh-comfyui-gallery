@@ -51,7 +51,7 @@ try {
   const originalModel = await fs.readFile(service.resolve(forceId).real)
   const originalSidecar = await fs.readFile(service.resolve(forceId).path.replace('.safetensors', '.json'))
   requests = []; await service.startBatch({ mode: 'all', filters: { favorite: '1', category: 'batch-fixture', base: 'fixture-base' } }); await service.batch.task
-  check(service.batchStatus().total === 1 && requests.map(r => r.kind).join(',') === 'json,image', 'refresh all respects combined filters and re-fetches both metadata and image')
+  check(service.batchStatus().total === 1 && requests[0].kind === 'json' && requests.length >= 2 && requests.slice(1).every(r => r.kind === 'image'), 'refresh all respects combined filters and re-fetches both metadata and 1-3 preview images')
   check(requests[0].url.endsWith('/1000'), 'known version uses metadata lookup without full file hash')
   const refreshed = await service.detail(forceId)
   check(refreshed.triggers[0] === 'newtrigger' && refreshed.displayName === 'Updated model' && refreshed.base === 'new-base', 'newly fetched metadata updates displayed fields over older sidecar data')
