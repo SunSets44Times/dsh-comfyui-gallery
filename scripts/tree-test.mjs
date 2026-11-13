@@ -56,6 +56,31 @@ check('leaf path filters one run', single.total === 2, String(single.total))
 // 根目录散图不产生额外的 sub 节点
 check('root-level image has empty sub', result.items.some(i => i.sub === ''), '')
 
+// 日期范围下推到查询：三天前的图能一次跳到
+const day = 86400000
+const now = Date.now()
+const touch = async (rel, offsetDays) => {
+  const file = path.join(root, rel)
+  await fsp.mkdir(path.dirname(file), { recursive: true })
+  await fsp.writeFile(file, PNG)
+  const when = new Date(now - offsetDays * day)
+  await fsp.utimes(file, when, when)
+}
+await touch('days/today.png', 0)
+await touch('days/three.png', 3)
+await touch('days/old.png', 40)
+await store.refresh()
+
+const threeAgo = new Date(now - 3 * day)
+const dayStart = new Date(threeAgo.getFullYear(), threeAgo.getMonth(), threeAgo.getDate()).getTime()
+const oneDay = await store.list({ from: dayStart, to: dayStart + day - 1, limit: 200 })
+check('date range returns only that day', oneDay.total === 1 && oneDay.items[0].name === 'three.png', oneDay.total + ' ' + (oneDay.items[0] && oneDay.items[0].name))
+
+const recent = await store.list({ from: now - 7 * day, limit: 200 })
+check('from-only range excludes older images', recent.items.every(i => i.mtime >= now - 7 * day), String(recent.total))
+
+const page = await store.list({ from: dayStart, to: dayStart + day - 1, limit: 60 })
+check('range total is the range total, not the page size', page.total === 1 && page.items.length === 1)
 await store.close()
 await fsp.rm(root, { recursive: true, force: true })
 console.log('done')

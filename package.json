@@ -1,6 +1,6 @@
 {
   "name": "dsh-comfyui-gallery",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "ComfyUI gallery for DeepSeek Harness: browse every generated image, read its prompt, negative prompt, sampler parameters, models and LoRAs, and copy any of it back for reuse.",
   "type": "module",
   "main": "lib/index.js",
