@@ -125,7 +125,7 @@ try {
   const saved = path.join(workflowsDir, '人像.json')
   await fs.writeFile(saved, uiGraph({ ids: [21, 22, 23, 24] }))
 
-  store = new GalleryStore({ roots: [root], cacheDir: path.join(fixture, 'cache'), workflowRoots: [workflowsDir], python: 'node', warmCount: 0 })
+  store = new GalleryStore({ roots: [root], cacheDir: path.join(fixture, 'cache'), workflowRoots: [workflowsDir], python: 'node', warmCount: 0, workflowFromImages: true })
   await store.ready
   await store.refresh()
   equal(store.entries.size, 4, 'fixture images are scanned')
@@ -162,6 +162,24 @@ try {
   check((await service.raw(file.id)).text.includes('CLIPTextEncode'), 'saved file exports its own JSON')
   check((await service.raw(cluster.id)).text.includes('LoraLoader'), 'cluster exports the embedded graph')
   await assert.rejects(service.item('zzz'), { status: 400 }); checks++
+
+  // --- 默认关闭：只列已保存的工作流 -------------------------------------------------
+  const plainStore = new GalleryStore({ roots: [root], cacheDir: path.join(fixture, 'cache2'), workflowRoots: [workflowsDir], python: 'node', warmCount: 0 })
+  await plainStore.ready
+  await plainStore.refresh()
+  for (const item of plainStore.entries.values()) await plainStore.detail(encodeId(item.path))
+  const plainService = new Workflows(plainStore)
+  const plainList = await plainService.list()
+  equal(plainList.total, 1, 'by default only saved workflows are listed')
+  equal(plainList.saved, 1, 'saved count still reported')
+  equal(plainList.unsaved, 0, 'no image-only cluster is listed by default')
+  equal(plainList.imageWorkflows, false, 'list reports that image workflows are off')
+  const plainFile = plainList.items.find(item => item.kind === 'file')
+  equal(plainFile.imageCount, 2, 'images still attach to the saved workflow when the option is off')
+  equal(plainFile.example, encodeId(newer), 'example image still comes from the newest run')
+  await assert.rejects(plainService.item('c.0000000000000000'), { status: 404 }); checks++
+  await assert.rejects(plainService.raw('c.0000000000000000'), { status: 404 }); checks++
+  await plainStore.close()
   await assert.rejects(service.item('c.0000000000000000'), { status: 404 }); checks++
 
   // --- HTTP surface -------------------------------------------------------------
