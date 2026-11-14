@@ -93,7 +93,7 @@ dsh plugin --profile web add dsh-comfyui-gallery
 | wd14ModelDir | 额外 WD14 模型目录。 |
 | similarityModel | CLIP Vision 模型路径。 |
 | interrogateTimeoutMs | 单张反推超时时间，默认 180000 毫秒。 |
-| workflowFromImages | 工作流页是否列出「从未存盘、只存在于图片元数据里」的工作流，默认 `false`（只列已保存的 .json）。 |
+| workflowFromImages | 工作流页是否列出「从未存盘、只存在于图片元数据里」的工作流，默认 `false`（只列已保存的 .json）。也可以在工作流页直接勾选「包含未存盘的工作流」，选择会存到 `~/.dsh-comfyui-gallery/settings.json`，重启后仍然生效。 |
 
 配置文件只保存在本机，不要提交到公共仓库。
 
@@ -121,7 +121,7 @@ LoRA 库会扫描 ComfyUI 和可选的 LoRA Manager 目录，读取 safetensors 
 
 ComfyUI 的子图（subgraph）会被展开成内部节点，并标注所属子图名，否则打包在子图里的 LoRA 和模型无法被识别。
 
-只出过图、从未保存过的工作流默认**不列出**。打开配置项 `workflowFromImages: true` 后，它们会以「未归档」出现在列表里，名字取自工作流分组标题或提示词摘要，JSON 从图片内嵌数据导出；关闭时工作流页只显示磁盘上真实存在的 .json 文件。已保存工作流的名称取文件名。
+只出过图、从未保存过的工作流默认**不列出**。工作流页工具栏有一个「包含未存盘的工作流」开关，勾上后它们会以「未归档」出现在列表里，名字取自工作流分组标题或提示词摘要，JSON 从图片内嵌数据导出；不勾时工作流页只显示磁盘上真实存在的 .json 文件。这个选择存在 `~/.dsh-comfyui-gallery/settings.json`，重启插件仍然生效；如果插件配置里显式写了 `workflowFromImages`，则以配置为准，界面开关会提示被覆盖。已保存工作流的名称取文件名。
 
 例图与出图数始终来自图片：即使关闭 `workflowFromImages`，已保存工作流仍会挂上匹配的出图，只是不再把"纯图片工作流"单独列出来。
 

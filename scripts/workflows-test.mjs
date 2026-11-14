@@ -179,6 +179,19 @@ try {
   equal(plainFile.example, encodeId(newer), 'example image still comes from the newest run')
   await assert.rejects(plainService.item('c.0000000000000000'), { status: 404 }); checks++
   await assert.rejects(plainService.raw('c.0000000000000000'), { status: 404 }); checks++
+
+  // --- 界面开关：POST /settings 持久化到 settings.json -------------------------------
+  const toggled = await plainStore.applySettings({ workflowFromImages: true })
+  equal(toggled.workflowFromImages, true, 'settings toggle is applied immediately')
+  equal((await plainService.list()).total, 2, 'turning the option on lists the unsaved cluster')
+  equal((await plainService.list()).unsaved, 1, 'unsaved count comes back with the option on')
+  const settingsFile = path.join(plainStore.config.cacheDir, 'settings.json')
+  const stored = JSON.parse(await fs.readFile(settingsFile, 'utf8'))
+  equal(stored.workflowFromImages, true, 'settings.json stores the toggle')
+  await assert.rejects(plainStore.applySettings({ workflowFromImages: 'yes' }), { status: 400 }); checks++
+  await assert.rejects(plainStore.applySettings({}), { status: 400 }); checks++
+  await plainStore.applySettings({ workflowFromImages: false })
+  equal((await plainService.list()).total, 1, 'turning it back off hides the cluster again')
   await plainStore.close()
   await assert.rejects(service.item('c.0000000000000000'), { status: 404 }); checks++
 
