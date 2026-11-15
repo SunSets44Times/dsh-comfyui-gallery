@@ -32,12 +32,18 @@ try {
   const missing = path.join(root, 'Flux', 'no-preview.safetensors'), missingId = await model(missing)
   const legacy = path.join(root, 'legacy.pt'); await fs.writeFile(legacy, 'not pickle; must never execute')
   const malformed = path.join(root, 'bad.safetensors'); await fs.writeFile(malformed, Buffer.alloc(8, 255))
+  // ai-toolkit 训练出的 LoRA：modelspec.title 为空，ss_output_name 是任务 ID
+  const junky = path.join(root, 'Krea2', 'Purple_Aether-KR2.safetensors'), junkyId = await model(junky, { 'modelspec.title': '', ss_output_name: 'training_191944-20261003022456385-1sfr', ss_base_model_version: 'krea2' })
+  // Civitai 下载常见哈希文件名，但训练输出名可读
+  const hashNamed = path.join(root, 'Flux', '6TEGF0P7M3YX2BX1M2H8FHDAQ0.safetensors'), hashId = await model(hashNamed, { ss_output_name: 'aether_style_v2' })
   const config = { roots: [], loraRoots: [root, path.join(root, 'SDXL')], python, cacheDir, thumbMax: 80, warmCount: 0 }
   store = new GalleryStore(config); await store.ready
   loras = new Loras(store); await loras.ready; await loras.scan
-  check(loras.roots.length === 1 && (await loras.list()).indexed === 4, 'recursive roots deduplicated, supported model files found')
+  check(loras.roots.length === 1 && (await loras.list()).indexed === 6, 'recursive roots deduplicated, supported model files found')
   const item = await loras.detail(id)
   check(item.displayName === '云彩风格' && item.base === 'SDXL 1.0' && item.baseSource === '元数据', 'LoRA Manager sidecar preferred over header metadata')
+  check((await loras.detail(junkyId)).displayName === 'Purple_Aether-KR2', 'empty modelspec.title falls back to the file name, not the training job id')
+  check((await loras.detail(hashId)).displayName === 'aether_style_v2', 'a readable training output name still beats a hash-like file name')
   check(item.triggers.join(',') === 'cloudstyle' && item.tags[0] === 'style' && item.version === 'v1', 'Civitai version triggers and tags recognized')
   check(item.training.dim === '16' && item.training.alpha === '8' && item.creator === 'fixture-author', 'training and author metadata read without loading weights')
   check(item.trainingTags[0].tag === 'landscape' && item.trainingTags[0].count === 7, 'training tag counts aggregated separately from trigger words')
@@ -51,7 +57,7 @@ try {
   check(m1.favorite && m2.favorite && m2.categories.length === 1 && m2.note === 'use softly', 'concurrent partial updates preserve favorites and notes')
   check((await loras.list({ favorite: '1', category: '风格', base: 'SDXL 1.0' })).total === 1, 'combined favorites category and base filter applied before pagination')
   check((await loras.list({ q: 'cloudstyle', limit: 1 })).total === 1 && (await loras.list({ q: 'use softly' })).total === 1, 'search covers triggers and personal notes')
-  check((await loras.list({ folder: 'Flux' })).total === 1 && (await loras.list({ offset: 1, limit: 2 })).items.length === 2, 'directory filter and pagination work')
+  check((await loras.list({ folder: 'Flux' })).total === 2 && (await loras.list({ offset: 1, limit: 2 })).items.length === 2, 'directory filter and pagination work')
   check((await loras.list()).categories[0] === '风格', 'category facets include saved labels')
   check((await loras.list({ tags: JSON.stringify(['concept']) })).total === 1 && (await loras.list()).tags.some(tag => tag.name === 'Concept'), 'source tag facets filter case-insensitively')
   await rejects(() => loras.annotate(id, { favorite: 'true' }), 400)
