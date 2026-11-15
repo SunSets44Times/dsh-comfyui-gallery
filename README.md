@@ -44,43 +44,43 @@
 
 从 npm 安装（推荐）：
 
-~~~powershell
+```powershell
 dsh plugin --profile web add dsh-comfyui-gallery
-~~~
+```
 
 也可以在 DSH 左侧栏点击 **插件 → 添加插件**，直接输入包名 `dsh-comfyui-gallery`。桌面端和网页版操作一致。
 
 从源码安装：将仓库克隆到 DSH 配置目录下的插件目录：
 
-~~~text
+```text
 <DSH profile>/plugins/dsh-comfyui-gallery
-~~~
+```
 
 在仓库目录运行：
 
-~~~powershell
+```powershell
 ./scripts/install.ps1
-~~~
+```
 
 脚本会添加 DSH 插件入口、加入 HMR 监视范围，并为已有配置创建备份。安装完成后重启 DSH，或按 DSH 提示重新加载插件，然后从左侧栏打开 **ComfyUI 图库**。
 
 如果 DSH 安装目录不同，可以指定路径：
 
-~~~powershell
+```powershell
 ./scripts/install.ps1 -Workspace "<DSH profile>/plugins/dsh-comfyui-gallery" -Profile "<DSH profile>"
-~~~
+```
 
 ## 配置
 
 插件默认查找 ComfyUI 的输出目录和模型目录。需要自定义路径时，在 DSH 用户数据目录创建：
 
-~~~text
+```text
 <DSH user data>/dsh-comfyui-gallery/config.json
-~~~
+```
 
 示例：
 
-~~~json
+```json
 {
   "roots": ["<ComfyUI>/output"],
   "loraRoots": ["<ComfyUI>/models/loras"],
@@ -91,7 +91,7 @@ dsh plugin --profile web add dsh-comfyui-gallery
   "warmCount": 300,
   "scanIntervalMs": 30000
 }
-~~~
+```
 
 | 字段 | 说明 |
 | --- | --- |
@@ -182,9 +182,9 @@ ComfyUI 的子图（subgraph）会被展开成内部节点，并标注所属子�
 
 在仓库根目录运行：
 
-~~~powershell
+```powershell
 npm test
-~~~
+```
 
 测试使用隔离 fixture 和模拟网络，不会启动真实出图，也不会修改用户的图片、LoRA 或对话草稿。
 
